@@ -44,7 +44,14 @@ x2primaNum = a2 * ( ( b2*x1*x2 + b3 ) * x4 + b4 * x3 - b6 * x1 * np.cos(x3)) + (
 x2primaDenom = a1*(m*x1**2 + b1) - a2 * b5
 x2prima = x2primaNum / x2primaDenom
 
-x3prima= x4
+x3prima = x4
+
+x4pter1 =  (-(b2 * x1 * x2 + b3)*x4 - b4*x3 + b6 * x1 * np.cos(x3) ) / (m * x1**2 + b1)
+x4pter2 =  ( b5 * (a3 * np.sin(x3) + m * x1 * x4**2) ) / ( a1*(m * x1**2 + b1) - a2 * b5 )
+x4pter3 = (a2*b5 * ( (b2 * x1 * x2 + b3)*x4 + b4*x3 - b6 * x1 * np.cos(x3)))/( (m * x1**2 + b1) * (a1*(m * x1**2 + b1) - a2 * b5) )
+x4pter4 = (1 + (a2 * b5) / ( a1 * (m * x1**2 + b1) - a2 * b5)) * ( ( l * np.cos(x3) * u(t)) / ( m * x1**2 + b1 ) )
+
+x4prima = x4pter1 - x4pter2 - x4pter3 + x4pter4
 
 #Proponerlas
 k1=1
