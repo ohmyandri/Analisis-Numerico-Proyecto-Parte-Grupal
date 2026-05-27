@@ -30,9 +30,8 @@ b6 = m * g
 
 # Funcion del input
 def u(t):
-    # return 0.0
-    return 0.0005  # Reducido de 0.5 a 0.005 Newtons para estabilidad en lazo abierto
-    # return np.sin(t)
+    return 0.000
+    #return 0.0001 # 0.0001 Para notar como la fuerza induce a que la esfera se mueva debido a la inclinacion
 
 #Datos del problema
 h = 0.001
@@ -96,181 +95,157 @@ for i in range(n):
 
     x_valores[i + 1] = x_i + (1/6) * (k_1 + 2*k_2 + 2*k_3 + k_4)
 
-#RESULTADO EN TERMINAL
-print("=== Resultados de la Simulación RK4 — Sistema Esfera-Riel ===")
-print(f"Tiempo de simulación: {t0} s  a  {tn} s  |  Paso h = {h} s  |  Iteraciones: {n}")
+#RESULTADOS DE LA SIMULACION
+print("Resultados de la Simulación RK4 — Sistema Esfera-Riel")
+print(f"Tiempo de simulación: [{t0},{tn}] segundos  |  Paso h = {h} [s]  |  Iteraciones: {n}")
 print(f"\nEstado inicial  (t=0):   x1={x_valores[0,0]:.6f}, x2={x_valores[0,1]:.6f}, x3={x_valores[0,2]:.6f}, x4={x_valores[0,3]:.6f}")
 print(f"Estado final (t={tn}):  x1={x_valores[-1,0]:.6f}, x2={x_valores[-1,1]:.6f}, x3={x_valores[-1,2]:.6f}, x4={x_valores[-1,3]:.6f}")
 
 
-#GRAFICAS ESTATICAS
-fig_static, axs = plt.subplots(2, 2, figsize=(14, 9))
-fig_static.suptitle('Simulación RK4 — Sistema Esfera-Riel', fontsize=16, fontweight='bold')
-
-axs[0, 0].plot(t_valores, x_valores[:, 0], color='tab:blue', linewidth=0.8)
-axs[0, 0].set_title('Posición de la esfera ($x_1$)')
-axs[0, 0].set_xlabel('Tiempo [s]')
-axs[0, 0].set_ylabel('Posición [m]')
-axs[0, 0].grid(True, alpha=0.3)
-
-axs[0, 1].plot(t_valores, x_valores[:, 1], color='tab:orange', linewidth=0.8)
-axs[0, 1].set_title('Velocidad de la esfera ($x_2$)')
-axs[0, 1].set_xlabel('Tiempo [s]')
-axs[0, 1].set_ylabel('Velocidad [m/s]')
-axs[0, 1].grid(True, alpha=0.3)
-
-axs[1, 0].plot(t_valores, x_valores[:, 2], color='tab:green', linewidth=0.8)
-axs[1, 0].set_title('Ángulo del riel ($x_3$)')
-axs[1, 0].set_xlabel('Tiempo [s]')
-axs[1, 0].set_ylabel('Ángulo [rad]')
-axs[1, 0].grid(True, alpha=0.3)
-
-axs[1, 1].plot(t_valores, x_valores[:, 3], color='tab:red', linewidth=0.8)
-axs[1, 1].set_title('Velocidad angular del riel ($x_4$)')
-axs[1, 1].set_xlabel('Tiempo [s]')
-axs[1, 1].set_ylabel('Vel. angular [rad/s]')
-axs[1, 1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.savefig('simulacion_rk4.png', dpi=150)
+#VISUALIZAR EN EL NOTEBOOK LAS GRAFICAS ESTATICAS
 
 #ANIMACION DEL PROGRESO EN LA GRAFICA
-paso = 100
-t_anim = t_valores[::paso]
-x_anim = x_valores[::paso]
-n_frames = len(t_anim)
+def visual_grafica_animada():
+    paso = 100
+    t_anim = t_valores[::paso]
+    x_anim = x_valores[::paso]
+    n_frames = len(t_anim)
 
-fig_anim, ax_anim = plt.subplots(2, 2, figsize=(14, 9))
-fig_anim.suptitle('Simulación RK4 — Sistema Esfera-Riel (Animación)', fontsize=16, fontweight='bold')
+    fig_anim, ax_anim = plt.subplots(2, 2, figsize=(14, 9))
+    fig_anim.suptitle('Simulación RK4 — Sistema Esfera-Riel (Animación)', fontsize=16, fontweight='bold')
 
-#Configurar ejes con límites finales
-titulos = ['Posición de la esfera ($x_1$)', 'Velocidad de la esfera ($x_2$)',
-           'Ángulo del riel ($x_3$)', 'Velocidad angular del riel ($x_4$)']
-ylabels = ['Posición [m]', 'Velocidad [m/s]', 'Ángulo [rad]', 'Vel. angular [rad/s]']
-colores = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
+    #Configurar ejes con límites finales
+    titulos = ['Posición de la esfera ($x_1$)', 'Velocidad de la esfera ($x_2$)',
+            'Ángulo del riel ($x_3$)', 'Velocidad angular del riel ($x_4$)']
+    ylabels = ['Posición [m]', 'Velocidad [m/s]', 'Ángulo [rad]', 'Vel. angular [rad/s]']
+    colores = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
 
-lineas = []
-for idx, (i, j) in enumerate([(0,0),(0,1),(1,0),(1,1)]):
-    ax_anim[i,j].set_xlim(t_valores[0], t_valores[-1])
-    y_col = x_anim[:, idx]
-    margen = (y_col.max() - y_col.min()) * 0.1 + 1e-6
-    ax_anim[i,j].set_ylim(y_col.min() - margen, y_col.max() + margen)
-    ax_anim[i,j].set_title(titulos[idx])
-    ax_anim[i,j].set_xlabel('Tiempo [s]')
-    ax_anim[i,j].set_ylabel(ylabels[idx])
-    ax_anim[i,j].grid(True, alpha=0.3)
-    linea, = ax_anim[i,j].plot([], [], color=colores[idx], linewidth=1.2)
-    lineas.append(linea)
+    lineas = []
+    for idx, (i, j) in enumerate([(0,0),(0,1),(1,0),(1,1)]):
+        ax_anim[i,j].set_xlim(t_valores[0], t_valores[-1])
+        y_col = x_anim[:, idx]
+        margen = (y_col.max() - y_col.min()) * 0.1 + 1e-6
+        ax_anim[i,j].set_ylim(y_col.min() - margen, y_col.max() + margen)
+        ax_anim[i,j].set_title(titulos[idx])
+        ax_anim[i,j].set_xlabel('Tiempo [s]')
+        ax_anim[i,j].set_ylabel(ylabels[idx])
+        ax_anim[i,j].grid(True, alpha=0.3)
+        linea, = ax_anim[i,j].plot([], [], color=colores[idx], linewidth=1.2)
+        lineas.append(linea)
 
-#Texto de tiempo
-tiempo_txt = fig_anim.text(0.5, 0.01, '', ha='center', fontsize=12, fontweight='bold')
+    #Texto de tiempo
+    tiempo_txt = fig_anim.text(0.5, 0.01, '', ha='center', fontsize=12, fontweight='bold')
 
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
-def init_graficas():
-    for linea in lineas:
-        linea.set_data([], [])
-    tiempo_txt.set_text('')
-    return lineas + [tiempo_txt]
+    def init_graficas():
+        for linea in lineas:
+            linea.set_data([], [])
+        tiempo_txt.set_text('')
+        return lineas + [tiempo_txt]
 
-def update_graficas(frame):
-    for idx, linea in enumerate(lineas):
-        linea.set_data(t_anim[:frame+1], x_anim[:frame+1, idx])
-    tiempo_txt.set_text(f't = {t_anim[frame]:.2f} s')
-    return lineas + [tiempo_txt]
+    def update_graficas(frame):
+        for idx, linea in enumerate(lineas):
+            linea.set_data(t_anim[:frame+1], x_anim[:frame+1, idx])
+        tiempo_txt.set_text(f't = {t_anim[frame]:.2f} s')
+        return lineas + [tiempo_txt]
 
-anim_graficas = FuncAnimation(fig_anim, update_graficas, init_func=init_graficas,
-                               frames=n_frames, interval=20, blit=True, repeat=False)
+    anim_graficas = FuncAnimation(fig_anim, update_graficas, init_func=init_graficas,
+                                frames=n_frames, interval=20, blit=True, repeat=False)
 
-plt.show()
+    plt.show()
 
 #VISUALIZACION FISICA DEL SISTEMA ESFERA RIEL 
-t_fisico = 10.0 #Tiempo a mostrar
-idx_fin = int(t_fisico / h)
-paso_fisico = 50
-t_fis = t_valores[:idx_fin:paso_fisico]
-x_fis = x_valores[:idx_fin:paso_fisico]
-n_frames_fis = len(t_fis)
+def visual_sistema():
+    t_fisico = 10.0 #Tiempo a mostrar
+    idx_fin = int(t_fisico / h)
+    paso_fisico = 25
+    t_fis = t_valores[:idx_fin:paso_fisico]
+    x_fis = x_valores[:idx_fin:paso_fisico]
+    n_frames_fis = len(t_fis)
 
-#Escalar la posición de la esfera para visualización (clamp para que no se salga)
-L_riel = 0.5  #Longitud VISUAL del riel
-pos_esfera = x_fis[:, 0]
-pos_visual = np.clip(pos_esfera, -lw, lw)
+    #Escalar la posición de la esfera para visualización (clamp para que no se salga)
+    L_riel = 0.5  #Longitud VISUAL del riel
+    pos_esfera = x_fis[:, 0]
+    pos_visual = np.clip(pos_esfera, -lw, lw)
 
-fig_fis, ax_fis = plt.subplots(figsize=(10, 8))
-ax_fis.set_xlim(-0.8, 0.8)
-ax_fis.set_ylim(-0.8, 0.8)
-ax_fis.set_aspect('equal')
-ax_fis.set_title('Animación del Sistema Esfera-Riel', fontsize=16, fontweight='bold')
-ax_fis.grid(True, alpha=0.2)
-ax_fis.set_xlabel('x [m]')
-ax_fis.set_ylabel('y [m]')
+    fig_fis, ax_fis = plt.subplots(figsize=(10, 8))
+    ax_fis.set_xlim(-0.8, 0.8)
+    ax_fis.set_ylim(-0.8, 0.8)
+    ax_fis.set_aspect('equal')
+    ax_fis.set_title('Animación del Sistema Esfera-Riel', fontsize=16, fontweight='bold')
+    ax_fis.grid(True, alpha=0.2)
+    ax_fis.set_xlabel('x [m]')
+    ax_fis.set_ylabel('y [m]')
 
-#Punto central de la viga
-pivote = plt.Circle((0, 0), 0.015, color='black', zorder=5)
-ax_fis.add_patch(pivote)
+    #Punto central de la viga
+    pivote = plt.Circle((0, 0), 0.015, color='black', zorder=5)
+    ax_fis.add_patch(pivote)
 
-#Línea del riel
-linea_riel, = ax_fis.plot([], [], 'k-', linewidth=4, solid_capstyle='round', zorder=3)
+    #Línea del riel
+    linea_riel, = ax_fis.plot([], [], 'k-', linewidth=4, solid_capstyle='round', zorder=3)
 
-#Esfera
-esfera = plt.Circle((0, 0), 0.03, color='tab:blue', zorder=4, ec='darkblue', linewidth=1.5)
-ax_fis.add_patch(esfera)
+    #Esfera
+    esfera = plt.Circle((0, 0), 0.03, color='tab:blue', zorder=4, ec='darkblue', linewidth=1.5)
+    ax_fis.add_patch(esfera)
 
-#Rastro de la esfera
-rastro, = ax_fis.plot([], [], 'tab:blue', alpha=0.3, linewidth=0.8, zorder=2)
-rastro_x = []
-rastro_y = []
+    #Rastro de la esfera
+    rastro, = ax_fis.plot([], [], 'tab:blue', alpha=0.3, linewidth=0.8, zorder=2)
+    rastro_x = []
+    rastro_y = []
 
-#Textos informativos
-info_tiempo = ax_fis.text(-0.75, 0.72, '', fontsize=11, fontfamily='monospace',
-                          bbox=dict(boxstyle='round,pad=0.3', facecolor='wheat', alpha=0.8))
-info_estado = ax_fis.text(-0.75, 0.55, '', fontsize=9, fontfamily='monospace',
-                          bbox=dict(boxstyle='round,pad=0.3', facecolor='lightcyan', alpha=0.8))
+    #Textos informativos
+    info_tiempo = ax_fis.text(-0.75, 0.72, '', fontsize=11, fontfamily='monospace',
+                            bbox=dict(boxstyle='round,pad=0.3', facecolor='wheat', alpha=0.8))
+    info_estado = ax_fis.text(-0.75, 0.55, '', fontsize=9, fontfamily='monospace',
+                            bbox=dict(boxstyle='round,pad=0.3', facecolor='lightcyan', alpha=0.8))
 
-def init_fisica():
-    linea_riel.set_data([], [])
-    esfera.center = (0, 0)
-    rastro.set_data([], [])
-    rastro_x.clear()
-    rastro_y.clear()
-    info_tiempo.set_text('')
-    info_estado.set_text('')
-    return [linea_riel, esfera, rastro, info_tiempo, info_estado]
+    def init_fisica():
+        linea_riel.set_data([], [])
+        esfera.center = (0, 0)
+        rastro.set_data([], [])
+        rastro_x.clear()
+        rastro_y.clear()
+        info_tiempo.set_text('')
+        info_estado.set_text('')
+        return [linea_riel, esfera, rastro, info_tiempo, info_estado]
 
-def update_fisica(frame):
-    theta = -x_fis[frame, 2]  # ángulo del riel
-    pos = pos_visual[frame]   # posición de la esfera (escalada)
+    def update_fisica(frame):
+        theta = -x_fis[frame, 2]  # ángulo del riel
+        pos = pos_visual[frame]   # posición de la esfera (escalada)
 
-    # Extremos del riel rotado
-    riel_x1 = -L_riel * np.cos(theta)
-    riel_y1 = -L_riel * np.sin(theta)
-    riel_x2 =  L_riel * np.cos(theta)
-    riel_y2 =  L_riel * np.sin(theta)
-    linea_riel.set_data([riel_x1, riel_x2], [riel_y1, riel_y2])
+        # Extremos del riel rotado
+        riel_x1 = -L_riel * np.cos(theta)
+        riel_y1 = -L_riel * np.sin(theta)
+        riel_x2 =  L_riel * np.cos(theta)
+        riel_y2 =  L_riel * np.sin(theta)
+        linea_riel.set_data([riel_x1, riel_x2], [riel_y1, riel_y2])
 
-    # Posición de la esfera sobre el riel
-    esf_x = pos * np.cos(theta)
-    esf_y = pos * np.sin(theta)
-    esfera.center = (esf_x, esf_y)
+        # Posición de la esfera sobre el riel
+        esf_x = pos * np.cos(theta)
+        esf_y = pos * np.sin(theta)
+        esfera.center = (esf_x, esf_y)
 
-    # Rastro
-    rastro_x.append(esf_x)
-    rastro_y.append(esf_y)
-    rastro.set_data(rastro_x, rastro_y)
+        # Rastro
+        rastro_x.append(esf_x)
+        rastro_y.append(esf_y)
+        rastro.set_data(rastro_x, rastro_y)
 
-    # Info
-    info_tiempo.set_text(f't = {t_fis[frame]:.3f} s')
-    info_estado.set_text(
-        f'pos = {x_fis[frame,0]:.4f} m\n'
-        f'vel = {x_fis[frame,1]:.4f} m/s\n'
-        f'θ   = {x_fis[frame,2]:.4f} rad\n'
-        f'ω   = {x_fis[frame,3]:.4f} rad/s'
-    )
+        # Info
+        info_tiempo.set_text(f't = {t_fis[frame]:.3f} s')
+        info_estado.set_text(
+            f'pos = {x_fis[frame,0]:.4f} m\n'
+            f'vel = {x_fis[frame,1]:.4f} m/s\n'
+            f'θ   = {x_fis[frame,2]:.4f} rad\n'
+            f'ω   = {x_fis[frame,3]:.4f} rad/s'
+        )
 
-    return [linea_riel, esfera, rastro, info_tiempo, info_estado]
+        return [linea_riel, esfera, rastro, info_tiempo, info_estado]
 
-anim_fisica = FuncAnimation(fig_fis, update_fisica, init_func=init_fisica,
-                             frames=n_frames_fis, interval=30, blit=True, repeat=True)
+    anim_fisica = FuncAnimation(fig_fis, update_fisica, init_func=init_fisica,
+                                frames=n_frames_fis, interval=30, blit=True, repeat=True)
 
-plt.show()
+    plt.show()
+
+
+visual_sistema()
