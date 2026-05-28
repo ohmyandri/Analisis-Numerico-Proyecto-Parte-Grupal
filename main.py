@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib.widgets import Slider, Button
 import matplotlib.patches as patches
 
 #Declaracion constantes Fisicas
@@ -30,14 +31,15 @@ b6 = m * g
 
 # Funcion del input
 def u(t):
-    return 0.000
+    #return 0.000
     #return 0.0001 # 0.0001 Para notar como la fuerza induce a que la esfera se mueva debido a la inclinacion
+    return m*g
 
 #Datos del problema
 h = 0.001
 t0 = 0
 tn = 50
-x0 = np.array([0, 0, 0, 0]) # Esfera desplazada 10 cm del centro
+x0 = np.array([-0.49, 0, 0, 0]) # Esfera desplazada 10 cm del centro
 n = int(np.round((tn-t0)/h,0))
 
 # 1. Línea del tiempo (eje X) — n+1 puntos desde t0 hasta tn
@@ -106,7 +108,7 @@ print(f"Estado final (t={tn}):  x1={x_valores[-1,0]:.6f}, x2={x_valores[-1,1]:.6
 
 #VISUALIZACION FISICA DEL SISTEMA ESFERA RIEL 
 def visual_sistema():
-    t_fisico = 10.0 #Tiempo a mostrar
+    t_fisico = 3.0 #Tiempo a mostrar
     idx_fin = int(t_fisico / h)
     paso_fisico = 25
     t_fis = t_valores[:idx_fin:paso_fisico]
@@ -119,6 +121,7 @@ def visual_sistema():
     pos_visual = np.clip(pos_esfera, -lw, lw)
 
     fig_fis, ax_fis = plt.subplots(figsize=(10, 8))
+    fig_fis.subplots_adjust(bottom=0.25)
     ax_fis.set_xlim(-0.8, 0.8)
     ax_fis.set_ylim(-0.8, 0.8)
     ax_fis.set_aspect('equal')
@@ -143,56 +146,95 @@ def visual_sistema():
     rastro_x = []
     rastro_y = []
 
-    #Textos informativos
-    info_tiempo = ax_fis.text(-0.75, 0.72, '', fontsize=11, fontfamily='monospace',
-                            bbox=dict(boxstyle='round,pad=0.3', facecolor='wheat', alpha=0.8))
-    info_estado = ax_fis.text(-0.75, 0.55, '', fontsize=9, fontfamily='monospace',
-                            bbox=dict(boxstyle='round,pad=0.3', facecolor='lightcyan', alpha=0.8))
+    #Texto informativo unificado para evitar superposiciones
+    info_texto = ax_fis.text(-0.75, 0.75, '', fontsize=10, fontfamily='monospace', va='top',
+                            bbox=dict(boxstyle='round,pad=0.4', facecolor='lightcyan', alpha=0.8))
+
+    # --- Controles de Tiempo ---
+    ax_slider = fig_fis.add_axes([0.2, 0.1, 0.6, 0.03])
+    time_slider = Slider(
+        ax=ax_slider,
+        label='Tiempo [s]',
+        valmin=t_fis[0],
+        valmax=t_fis[-1],
+        valinit=t_fis[0],
+    )
+
+    ax_play = fig_fis.add_axes([0.4, 0.025, 0.1, 0.04])
+    ax_pause = fig_fis.add_axes([0.5, 0.025, 0.1, 0.04])
+    btn_play = Button(ax_play, 'Play')
+    btn_pause = Button(ax_pause, 'Pause')
+
+    is_playing = [True]
+    frame_actual = [0]
+
+    def slider_changed(val):
+        frame_actual[0] = np.argmin(np.abs(t_fis - val))
+        update_fisica(None)
+        fig_fis.canvas.draw_idle()
+
+    time_slider.on_changed(slider_changed)
+
+    def play(event):
+        is_playing[0] = True
+
+    def pause(event):
+        is_playing[0] = False
+
+    btn_play.on_clicked(play)
+    btn_pause.on_clicked(pause)
+
+    #Precalculo de toda la geometría para no recalcular nada durante la animación
+    theta_all = -x_fis[:, 2]
+    esf_x_all = pos_visual * np.cos(theta_all)
+    esf_y_all = pos_visual * np.sin(theta_all)
+    
+    riel_x1_all = -L_riel * np.cos(theta_all)
+    riel_y1_all = -L_riel * np.sin(theta_all)
+    riel_x2_all =  L_riel * np.cos(theta_all)
+    riel_y2_all =  L_riel * np.sin(theta_all)
 
     def init_fisica():
         linea_riel.set_data([], [])
         esfera.center = (0, 0)
         rastro.set_data([], [])
-        rastro_x.clear()
-        rastro_y.clear()
-        info_tiempo.set_text('')
-        info_estado.set_text('')
-        return [linea_riel, esfera, rastro, info_tiempo, info_estado]
+        info_texto.set_text('')
+        return [linea_riel, esfera, rastro, info_texto]
 
-    def update_fisica(frame):
-        theta = -x_fis[frame, 2]  # ángulo del riel
-        pos = pos_visual[frame]   # posición de la esfera (escalada)
+    def update_fisica(frame_dummy):
+        if is_playing[0] and frame_dummy is not None:
+            frame_actual[0] = (frame_actual[0] + 1) % n_frames_fis
+            time_slider.eventson = False
+            time_slider.drawon = False
+            time_slider.set_val(t_fis[frame_actual[0]])
+            time_slider.drawon = True
+            time_slider.eventson = True
+            
+        frame = frame_actual[0]
 
         # Extremos del riel rotado
-        riel_x1 = -L_riel * np.cos(theta)
-        riel_y1 = -L_riel * np.sin(theta)
-        riel_x2 =  L_riel * np.cos(theta)
-        riel_y2 =  L_riel * np.sin(theta)
-        linea_riel.set_data([riel_x1, riel_x2], [riel_y1, riel_y2])
+        linea_riel.set_data([riel_x1_all[frame], riel_x2_all[frame]], 
+                            [riel_y1_all[frame], riel_y2_all[frame]])
 
         # Posición de la esfera sobre el riel
-        esf_x = pos * np.cos(theta)
-        esf_y = pos * np.sin(theta)
-        esfera.center = (esf_x, esf_y)
+        esfera.center = (esf_x_all[frame], esf_y_all[frame])
 
-        # Rastro
-        rastro_x.append(esf_x)
-        rastro_y.append(esf_y)
-        rastro.set_data(rastro_x, rastro_y)
+        # Rastro completo hasta el frame actual
+        rastro.set_data(esf_x_all[:frame+1], esf_y_all[:frame+1])
 
-        # Info
-        info_tiempo.set_text(f't = {t_fis[frame]:.3f} s')
-        info_estado.set_text(
+        # Info unificada
+        info_texto.set_text(
+            f't   = {t_fis[frame]:.3f} s\n'
             f'pos = {x_fis[frame,0]:.4f} m\n'
             f'vel = {x_fis[frame,1]:.4f} m/s\n'
             f'θ   = {x_fis[frame,2]:.4f} rad\n'
             f'ω   = {x_fis[frame,3]:.4f} rad/s'
         )
 
-        return [linea_riel, esfera, rastro, info_tiempo, info_estado]
+        return [linea_riel, esfera, rastro, info_texto]
 
     anim_fisica = FuncAnimation(fig_fis, update_fisica, init_func=init_fisica,
-                                frames=n_frames_fis, interval=30, blit=True, repeat=True)
+                                frames=n_frames_fis, interval=30, blit=False, repeat=True)
 
     plt.show()
 
