@@ -102,58 +102,7 @@ print(f"\nEstado inicial  (t=0):   x1={x_valores[0,0]:.6f}, x2={x_valores[0,1]:.
 print(f"Estado final (t={tn}):  x1={x_valores[-1,0]:.6f}, x2={x_valores[-1,1]:.6f}, x3={x_valores[-1,2]:.6f}, x4={x_valores[-1,3]:.6f}")
 
 
-#VISUALIZAR EN EL NOTEBOOK LAS GRAFICAS ESTATICAS
-
-#ANIMACION DEL PROGRESO EN LA GRAFICA
-def visual_grafica_animada():
-    paso = 100
-    t_anim = t_valores[::paso]
-    x_anim = x_valores[::paso]
-    n_frames = len(t_anim)
-
-    fig_anim, ax_anim = plt.subplots(2, 2, figsize=(14, 9))
-    fig_anim.suptitle('Simulación RK4 — Sistema Esfera-Riel (Animación)', fontsize=16, fontweight='bold')
-
-    #Configurar ejes con límites finales
-    titulos = ['Posición de la esfera ($x_1$)', 'Velocidad de la esfera ($x_2$)',
-            'Ángulo del riel ($x_3$)', 'Velocidad angular del riel ($x_4$)']
-    ylabels = ['Posición [m]', 'Velocidad [m/s]', 'Ángulo [rad]', 'Vel. angular [rad/s]']
-    colores = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
-
-    lineas = []
-    for idx, (i, j) in enumerate([(0,0),(0,1),(1,0),(1,1)]):
-        ax_anim[i,j].set_xlim(t_valores[0], t_valores[-1])
-        y_col = x_anim[:, idx]
-        margen = (y_col.max() - y_col.min()) * 0.1 + 1e-6
-        ax_anim[i,j].set_ylim(y_col.min() - margen, y_col.max() + margen)
-        ax_anim[i,j].set_title(titulos[idx])
-        ax_anim[i,j].set_xlabel('Tiempo [s]')
-        ax_anim[i,j].set_ylabel(ylabels[idx])
-        ax_anim[i,j].grid(True, alpha=0.3)
-        linea, = ax_anim[i,j].plot([], [], color=colores[idx], linewidth=1.2)
-        lineas.append(linea)
-
-    #Texto de tiempo
-    tiempo_txt = fig_anim.text(0.5, 0.01, '', ha='center', fontsize=12, fontweight='bold')
-
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-
-    def init_graficas():
-        for linea in lineas:
-            linea.set_data([], [])
-        tiempo_txt.set_text('')
-        return lineas + [tiempo_txt]
-
-    def update_graficas(frame):
-        for idx, linea in enumerate(lineas):
-            linea.set_data(t_anim[:frame+1], x_anim[:frame+1, idx])
-        tiempo_txt.set_text(f't = {t_anim[frame]:.2f} s')
-        return lineas + [tiempo_txt]
-
-    anim_graficas = FuncAnimation(fig_anim, update_graficas, init_func=init_graficas,
-                                frames=n_frames, interval=20, blit=True, repeat=False)
-
-    plt.show()
+#VISUALIZAR EN EL NOTEBOOK LAS GRAFICAS
 
 #VISUALIZACION FISICA DEL SISTEMA ESFERA RIEL 
 def visual_sistema():
