@@ -30,16 +30,32 @@ b5 = m * r + (Ib / r)
 b6 = m * g
 
 # Funcion del input
+#Aqui se debera modificar la fuerza que se aplica como u(t)
 def u(t):
-    #return 0.000
-    #return 0.0001 # 0.0001 Para notar como la fuerza induce a que la esfera se mueva debido a la inclinacion
-    return m*g
+    #Caso 1.1
+    return 0.0
+    #Caso 1.2
+    #return m*g
+
+    #Caso 2
+    #return 0.0005
+
+    #Caso 3
+    #return 1.63
 
 #Datos del problema
 h = 0.001
 t0 = 0
 tn = 50
-x0 = np.array([-0.49, 0, 0, 0]) # Esfera desplazada 10 cm del centro
+#Caso 1.1 y Caso 2:
+x0 = np.array([0, 0, 0, 0]) # Esfera sin desplazar del centro [Posicion en x]
+
+#Caso 1.2:
+#x0 = np.array([-0.49, 0, 0, 0]) # Esfera desplazada 49[cm] a la izquierda [Posicion en x]
+
+#Caso 3:
+#x0 = np.array([-0.30, 0, 0, 0]) # Esfera desplazada 30[cm] a la izquierda [Posicion en x]
+
 n = int(np.round((tn-t0)/h,0))
 
 # 1. Línea del tiempo (eje X) — n+1 puntos desde t0 hasta tn
@@ -108,7 +124,7 @@ print(f"Estado final (t={tn}):  x1={x_valores[-1,0]:.6f}, x2={x_valores[-1,1]:.6
 
 #VISUALIZACION FISICA DEL SISTEMA ESFERA RIEL 
 def visual_sistema():
-    t_fisico = 3.0 #Tiempo a mostrar
+    t_fisico = 5.0 #Tiempo a mostrar
     idx_fin = int(t_fisico / h)
     paso_fisico = 25
     t_fis = t_valores[:idx_fin:paso_fisico]
